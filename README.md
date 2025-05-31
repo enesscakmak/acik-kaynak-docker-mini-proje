@@ -10,16 +10,10 @@ Notlarınızı kolayca yönetmenizi sağlayan bir not alma uygulaması.
 
 Projeyi Docker kullanarak hızlıca çalıştırabilirsiniz:
 
-1. **Docker İmajını Oluşturun**:
+1. **Konteyneri Başlatın**:
 
     ```bash
-    docker build -t not-taking-app .
-    ```
-
-2. **Konteyneri Başlatın**:
-
-    ```bash
-    docker run -p 3000:3000 not-taking-app
+    docker-compose up
     ```
 
 3. **Uygulamayı Açın**:
