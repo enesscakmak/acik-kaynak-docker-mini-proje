@@ -1,12 +1,17 @@
+// app.js (backend)
+
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
+const path = require("path");
 
 const app = express();
+const port = process.env.PORT || 3000;
+app.use(express.static(path.join(__dirname, "client")));
+
 app.use(cors());
 app.use(express.json());
 
-// Ortam değişkenleri ile DB bağlantısı
 const pool = new Pool({
 	user: process.env.POSTGRES_USER,
 	host: process.env.POSTGRES_HOST,
@@ -15,32 +20,39 @@ const pool = new Pool({
 	port: process.env.POSTGRES_PORT,
 });
 
-// Basit health check
+// Test route
 app.get("/", (req, res) => {
 	res.send("Note Taking API is running");
 });
 
-// Notları listele
-app.get("/notes", async (req, res) => {
-	const result = await pool.query("SELECT * FROM notes ORDER BY id DESC");
-	res.json(result.rows);
+// Notları getir
+app.get("/api/notes", async (req, res) => {
+	try {
+		const result = await pool.query("SELECT * FROM notes ORDER BY id DESC");
+		res.json(result.rows);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Database error" });
+	}
 });
 
-// Yeni not ekle
-app.post("/notes", async (req, res) => {
+// Not ekle
+app.post("/api/notes", async (req, res) => {
 	const { content } = req.body;
-	if (!content) return res.status(400).json({ error: "Content required" });
-	const result = await pool.query(
-		"INSERT INTO notes(content) VALUES($1) RETURNING *",
-		[content]
-	);
-	res.status(201).json(result.rows[0]);
+	if (!content) return res.status(400).json({ error: "Content is required" });
+
+	try {
+		const result = await pool.query(
+			"INSERT INTO notes (content) VALUES ($1) RETURNING *",
+			[content]
+		);
+		res.status(201).json(result.rows[0]);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Database error" });
+	}
 });
 
-// Statik frontend dosyalarını sun
-app.use(express.static("public"));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-	console.log(`Server started on port ${PORT}`);
+app.listen(port, () => {
+	console.log(`Server is running on port ${port}`);
 });
